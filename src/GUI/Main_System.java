@@ -7,6 +7,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.TableModel;
 
 import Excel.ExcelController;
 import Excel.ServiceWrite;
@@ -19,11 +20,15 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import java.awt.Panel;
+import java.awt.Point;
+
 import javax.swing.JTable;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.awt.event.ActionEvent;
@@ -117,6 +122,17 @@ public class Main_System extends JFrame {
 		panel_1.setLayout(null);
 		JTable table = new JTable(content,header);
 		table.setBounds(12, 20, 672, 495);
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				JTable t = (JTable)e.getSource();
+				if(e.getClickCount() == 2) {
+					TableModel m = t.getModel();
+					Point pointer = e.getPoint();
+					int index = t.rowAtPoint(pointer);
+				}
+			}
+		});
 		
 		
 		panel_1.add(table);
