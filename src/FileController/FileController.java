@@ -15,21 +15,15 @@ public class FileController {
 	private FileInputStream fis;
 	private FileOutputStream fos;
 	
-	public FileController() {
-		
-	}
-	
 	public String getFilePath() {
 		file = new File("FilePath.txt");
 		String path = "";
 		try {
 			path = file.getCanonicalPath();
-			file = new File(path);
 			Scanner scan = new Scanner(file);
 			while(scan.hasNextLine()) {
 				path = scan.nextLine();
 			}
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -46,7 +40,6 @@ public class FileController {
 			writer.write(filePath);
 			writer.flush();
 			writer.close();
-			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

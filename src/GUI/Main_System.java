@@ -9,6 +9,8 @@ import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
 import Excel.ExcelController;
+import Excel.ServiceWrite;
+import Excel.XlsxVO;
 import FileController.FileController;
 
 import javax.swing.JMenuBar;
@@ -32,6 +34,8 @@ public class Main_System extends JFrame {
 	
 	private JPanel contentPane;
 	private JTable table;
+	
+	ExcelController xlsxController = new ExcelController();
 
 	/**
 	 * Launch the application.
@@ -53,10 +57,8 @@ public class Main_System extends JFrame {
 	 * Create the frame.
 	 */
 	public Main_System() {
-//		ExcelController xlsxController = new ExcelController();
-//		xlsxController.getXlsx(1);
 		FileController file = new FileController();
-		System.out.println(file.getFilePath());
+		xlsxController.getXlsx();
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 933, 639);
@@ -102,9 +104,6 @@ public class Main_System extends JFrame {
 		tabbedPane.setBounds(0, 0, 917, 579);
 		contentPane.add(tabbedPane);
 		
-		Panel panel = new Panel();
-		tabbedPane.addTab("매출 관리", null, panel, null);
-		
 		
 		
 		
@@ -126,10 +125,11 @@ public class Main_System extends JFrame {
 		btnAddProduct.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String []result = new String[3];
-				String []message = {"품명", "단가()","재고"};
+				String []result = new String[2];
+//				String []message = {"품명","단가(단위당 가격)","단가(단위)","재고"};
+				String []message = {"품명","재고(숫자만 입력)"};
 				Boolean suc = true;
-				for(int i = 0 ; i < result.length; i++) {
+				for(int i = 0 ; i < message.length; i++) {
 					result[i] = JOptionPane.showInputDialog(message[i]);
 					if(result[i] == null) {
 						suc = false;
@@ -137,6 +137,8 @@ public class Main_System extends JFrame {
 					}
 				}
 				if(suc) {
+					XlsxVO vo = new XlsxVO(result);
+					xlsxController.addProduct(vo);
 					
 				}
 					
