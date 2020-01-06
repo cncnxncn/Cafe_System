@@ -1,16 +1,13 @@
 package GUI;
 
-import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableModel;
 
 import Excel.ExcelController;
-import Excel.ServiceWrite;
 import Excel.XlsxVO;
 import FileController.FileController;
 
@@ -40,7 +37,7 @@ import javax.swing.JLabel;
 public class Main_System extends JFrame {
 	
 	private JPanel contentPane;
-	
+	private JTable table;
 	ExcelController xlsxController = new ExcelController();
 
 	/**
@@ -95,7 +92,7 @@ public class Main_System extends JFrame {
 		
 		
 		
-		String header [] = {"품목","입고량","사용량","망실량","재고"};
+		String header [] = {"품목","입고량","사용량","망실량","재고","최근 수정일"};
 		String content[][]= null;
 		JTable table = null;
 		
@@ -105,6 +102,9 @@ public class Main_System extends JFrame {
 		String result = (String) productMap.get("result");
 		if(result.equals("성공")) {
 			content = (String[][]) productMap.get("product");
+			for(int i = 0 ; i < content[0].length; i++) {
+				System.out.println(content[0][i]);
+			}
 			table = new JTable(content,header);
 			table.setBounds(12, 20, 672, 495);
 			table.addMouseListener(new MouseAdapter() {
@@ -192,27 +192,27 @@ public class Main_System extends JFrame {
 		panel_1.add(btnDelete);
 		
 		JLabel label = new JLabel("\uD488\uBA85");
-		label.setBounds(30, 0, 116, 15);
+		label.setBounds(30, 0, 43, 15);
 		panel_1.add(label);
 		
 		JLabel label_1 = new JLabel("\uC785\uACE0\uB7C9");
-		label_1.setBounds(125, 0, 57, 15);
+		label_1.setBounds(131, 0, 57, 15);
 		panel_1.add(label_1);
 		
 		JLabel label_2 = new JLabel("\uC0AC\uC6A9\uB7C9");
-		label_2.setBounds(230, 0, 57, 15);
+		label_2.setBounds(244, 0, 57, 15);
 		panel_1.add(label_2);
 		
 		JLabel label_3 = new JLabel("\uB9DD\uC2E4\uB7C9");
-		label_3.setBounds(347, 0, 57, 15);
+		label_3.setBounds(362, 0, 57, 15);
 		panel_1.add(label_3);
 		
 		JLabel label_4 = new JLabel("\uC7AC\uACE0");
-		label_4.setBounds(458, 0, 57, 15);
+		label_4.setBounds(476, 0, 57, 15);
 		panel_1.add(label_4);
 		
 		JLabel label_5 = new JLabel("\uCD5C\uADFC\uC218\uC815\uC77C");
-		label_5.setBounds(557, 0, 89, 15);
+		label_5.setBounds(579, 0, 89, 15);
 		panel_1.add(label_5);
 	}
 }

@@ -45,26 +45,38 @@ public class ExcelController {
 	private ServiceWrite serviceWrite;
 	private ServiceRead serviceRead;
 	
-	public Object getXlsx() {
+	public Map<String , Object> getXlsx() {
+		XSSFWorkbook workbook = null;
+		XSSFSheet sheet;
+		ServiceWrite servicewrite = null;
+		Map<String, Object> resultMap = new HashMap<String, Object>();
 		try {
 			FileInputStream fis = vo.getXlsx();
-			XSSFWorkbook workbook = new XSSFWorkbook(fis);
-			XSSFSheet sheet = null;
-			ServiceWrite servicewrite = new ServiceWrite();
-			try {
-				sheet = workbook.getSheetAt(0);
-//				System.out.println(sheet.getPhysicalNumberOfRows());
-				if(sheet.getPhysicalNumberOfRows() < 30) {
-					servicewrite.XlsxSetting(workbook,true);
-				}
-			}catch(Exception e){
-				e.printStackTrace();
-				servicewrite.XlsxSetting(workbook,false);
-			}
+			workbook = new XSSFWorkbook(fis);
+			sheet = null;
+			servicewrite = new ServiceWrite();
+			
 		} catch (Exception e) {
-			e.printStackTrace();
+			resultMap.put("result", "파일이 없습니다.");
+			return resultMap;
 		}
-		return null;
+		try {
+			sheet = workbook.getSheetAt(0);
+			if(sheet.getPhysicalNumberOfRows() < 30) {
+				servicewrite.XlsxSetting(workbook,true);
+				resultMap.put("result", "가져올 데이터가 없습니다.");
+				return resultMap;
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+			servicewrite.XlsxSetting(workbook,false);
+			resultMap.put("result", "가져올 데이터가 없습니다.");
+			return resultMap;
+		}
+		ServiceRead serviceRead = new ServiceRead();
+		resultMap.put("workbook", workbook);
+		resultMap = serviceRead.ReadXlsx(resultMap);
+		return resultMap;
 	}
 	
 	public Object writeXlsx() {

@@ -274,7 +274,7 @@ public class ServiceWrite {
 			map1.put("workbook", workbook);
 			map1.put("sheet", sheet);
 			map1.put("cellIndex",cellIndex - 3);
-			
+			map1.put("lastMonthStock", lastMonthStock);
 			
 			Map<String , Object> resultMap = new HashMap<String,Object>();
 			resultMap = statisticsSetting(map1);
@@ -330,7 +330,7 @@ public class ServiceWrite {
 		XSSFWorkbook workbook = (XSSFWorkbook) map.get("workbook");
 		XSSFSheet sheet = (XSSFSheet) map.get("sheet");
 		int cellIndex = (int) map.get("cellIndex");
-		
+		double lastMonthStock = (double) map.get("lastMonthStock");
 		int rowIndex = 30 ;
 		int MaximumRowIndex = sheet.getPhysicalNumberOfRows();
 		while(rowIndex < MaximumRowIndex) {
@@ -373,11 +373,13 @@ public class ServiceWrite {
 			CellHeader[index].setCellStyle(headerStyle);
 			
 			CellContent[index] = sheet.getRow(rowIndex + 1).createCell(cellIndex);
+			CellContent[index].setCellValue("0");
 			CellContent[index].setCellStyle(contentStyle);
 			
 			if(index + 1 == StatisticsHeader.length) {
 				CellHeader[index].setCellStyle(headerLastStyle);
 				CellContent[index].setCellStyle(contentLastStyle);
+				CellContent[index].setCellValue(lastMonthStock);
 			}
 			cellIndex++;
 		}
