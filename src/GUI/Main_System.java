@@ -101,7 +101,7 @@ public class Main_System extends JFrame {
 		
 		
 		Map<String, Object> productMap = new HashMap<String, Object>();
-		productMap = xlsxController.getXlsx();
+		productMap = (Map<String, Object>) xlsxController.getXlsx();
 		String result = (String) productMap.get("result");
 		if(result.equals("성공")) {
 			content = (String[][]) productMap.get("product");
@@ -141,6 +141,8 @@ public class Main_System extends JFrame {
 					File f = chooser.getSelectedFile();
 					try {
 						file.setFilePath(f.getCanonicalPath());
+						panel_1.revalidate();
+						panel_1.repaint();
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
@@ -148,42 +150,6 @@ public class Main_System extends JFrame {
 			}
 		});
 		mnSystem.add(mntmOpen);
-<<<<<<< HEAD
-=======
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(contentPane);
-		contentPane.setLayout(null);
-		
-		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		tabbedPane.setBounds(0, 0, 917, 579);
-		contentPane.add(tabbedPane);
-		
-		
-		
-		
-		
-		Panel panel_1 = new Panel();
-		tabbedPane.addTab("재고 관리", null, panel_1, null);
-		
-		
-		String header [] = {"품목","입고량","사용량","망실량","재고"};
-		String content[][]= {};
-		panel_1.setLayout(null);
-		JTable table = new JTable(content,header);
-		table.setBounds(12, 20, 672, 495);
-		table.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				JTable t = (JTable)e.getSource();
-				if(e.getClickCount() == 2) {
-					TableModel m = t.getModel();
-					Point pointer = e.getPoint();
-					int index = t.rowAtPoint(pointer);
-				}
-			}
-		});
->>>>>>> master
 		
 		
 		
