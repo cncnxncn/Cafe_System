@@ -7,6 +7,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.TableModel;
 
 import Excel.ExcelController;
 import Excel.ServiceWrite;
@@ -19,13 +20,19 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import java.awt.Panel;
+import java.awt.Point;
+
 import javax.swing.JTable;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollBar;
 import javax.swing.JLabel;
@@ -33,7 +40,6 @@ import javax.swing.JLabel;
 public class Main_System extends JFrame {
 	
 	private JPanel contentPane;
-	private JTable table;
 	
 	ExcelController xlsxController = new ExcelController();
 
@@ -58,7 +64,6 @@ public class Main_System extends JFrame {
 	 */
 	public Main_System() {
 		FileController file = new FileController();
-		xlsxController.getXlsx();
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 933, 639);
@@ -74,6 +79,54 @@ public class Main_System extends JFrame {
 		
 		JMenuItem mntmSave = new JMenuItem("Save");
 		mnSystem.add(mntmSave);
+		
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
+		
+		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPane.setBounds(0, 0, 917, 579);
+		contentPane.add(tabbedPane);
+		
+		Panel panel_1 = new Panel();
+		tabbedPane.addTab("재고 관리", null, panel_1, null);
+		
+		
+		
+		
+		String header [] = {"품목","입고량","사용량","망실량","재고"};
+		String content[][]= null;
+		JTable table = null;
+		
+		
+		Map<String, Object> productMap = new HashMap<String, Object>();
+		productMap = xlsxController.getXlsx();
+		String result = (String) productMap.get("result");
+		if(result.equals("성공")) {
+			content = (String[][]) productMap.get("product");
+			table = new JTable(content,header);
+			table.setBounds(12, 20, 672, 495);
+			table.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					JTable t = (JTable)e.getSource();
+					System.out.println(e.getClickCount());
+					if(e.getClickCount() == 2) {
+						TableModel m = t.getModel();
+						Point pointer = e.getPoint();
+						int index = t.rowAtPoint(pointer);
+						System.out.println("table Index :" + index);
+					}
+				}
+			});
+			panel_1.add(table);
+		}else {
+			JOptionPane.showMessageDialog(null, result);
+		}
+		
+		panel_1.setLayout(null);
+		
 		
 		JMenuItem mntmOpen = new JMenuItem("Open");
 		mntmOpen.addActionListener(new ActionListener() {
@@ -95,6 +148,8 @@ public class Main_System extends JFrame {
 			}
 		});
 		mnSystem.add(mntmOpen);
+<<<<<<< HEAD
+=======
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -117,9 +172,20 @@ public class Main_System extends JFrame {
 		panel_1.setLayout(null);
 		JTable table = new JTable(content,header);
 		table.setBounds(12, 20, 672, 495);
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				JTable t = (JTable)e.getSource();
+				if(e.getClickCount() == 2) {
+					TableModel m = t.getModel();
+					Point pointer = e.getPoint();
+					int index = t.rowAtPoint(pointer);
+				}
+			}
+		});
+>>>>>>> master
 		
 		
-		panel_1.add(table);
 		
 		JButton btnAddProduct = new JButton("Add Product");
 		btnAddProduct.addActionListener(new ActionListener() {

@@ -34,43 +34,66 @@ import FileController.FileVO;
 
 public class ExcelController {
 	
-	Calendar cal;
-	TimeZone time;
-	Date date;
-	DateFormat df = new SimpleDateFormat(
-			"yyyy-MM-dd/HH:mm:ss");
-	
 	FileVO vo = new FileVO();
 	
 	private ServiceWrite serviceWrite;
 	private ServiceRead serviceRead;
 	
-	public Object getXlsx() {
+	public Map<String , Object> getXlsx() {
+		XSSFWorkbook workbook = null;
+		XSSFSheet sheet;
+		ServiceWrite servicewrite = null;
+<<<<<<< HEAD
+		FileInputStream fis = null;
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		try {
+			fis = vo.getXlsx();
+=======
+		Map<String, Object> resultMap = new HashMap<String, Object>();
 		try {
 			FileInputStream fis = vo.getXlsx();
-			XSSFWorkbook workbook = new XSSFWorkbook(fis);
-			XSSFSheet sheet = null;
-			ServiceWrite servicewrite = new ServiceWrite();
-			try {
-				sheet = workbook.getSheetAt(0);
-//				System.out.println(sheet.getPhysicalNumberOfRows());
-				if(sheet.getPhysicalNumberOfRows() < 30) {
-					servicewrite.XlsxSetting(workbook,true);
-				}
-			}catch(Exception e){
-				e.printStackTrace();
-				servicewrite.XlsxSetting(workbook,false);
-			}
+>>>>>>> master
+			workbook = new XSSFWorkbook(fis);
+			sheet = null;
+			servicewrite = new ServiceWrite();
+			
 		} catch (Exception e) {
+			resultMap.put("result", "파일이 없습니다.");
+			return resultMap;
+		}
+		
+		try {
+			sheet = workbook.getSheetAt(0);
+			if(sheet.getPhysicalNumberOfRows() < 30) {
+				servicewrite.XlsxSetting(workbook,true);
+				resultMap.put("result", "가져올 데이터가 없습니다");
+				return resultMap;
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+			servicewrite.XlsxSetting(workbook,false);
+			resultMap.put("result", "가져올 데이터가 없습니다");
+			return resultMap;
+		}
+		
+		ServiceRead serviceRead = new ServiceRead();
+		resultMap.put("workbook", workbook);
+<<<<<<< HEAD
+		resultMap.put("product",serviceRead.ReadXlsx(resultMap));
+		resultMap.put("result", "성공");
+		
+		try {
+			fis.close();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return null;
+=======
+		resultMap = serviceRead.ReadXlsx(resultMap);
+		resultMap.put("result", "성공");
+>>>>>>> master
+		return resultMap;
 	}
 	
-	public Object writeXlsx() {
-		
-		return null;
-	}
 	
 	public Object addProduct(XlsxVO vo) {
 		serviceWrite = new ServiceWrite();
