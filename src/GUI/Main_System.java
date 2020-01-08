@@ -1,16 +1,27 @@
 package GUI;
 
-import java.awt.BorderLayout;
+import java.awt.Button;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Insets;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.plaf.basic.BasicTreeUI.CellEditorHandler;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableModel;
 
+import org.apache.xmlbeans.impl.xb.xsdschema.Public;
+
 import Excel.ExcelController;
-import Excel.ServiceWrite;
 import Excel.XlsxVO;
 import FileController.FileController;
 
@@ -23,12 +34,16 @@ import java.awt.Panel;
 import java.awt.Point;
 
 import javax.swing.JTable;
+import javax.swing.CellEditor;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -40,8 +55,9 @@ import javax.swing.JLabel;
 public class Main_System extends JFrame {
 	
 	private JPanel contentPane;
-	
+	private JTable table;
 	ExcelController xlsxController = new ExcelController();
+	FileController filecon = new FileController();
 
 	/**
 	 * Launch the application.
@@ -95,7 +111,7 @@ public class Main_System extends JFrame {
 		
 		
 		
-		String header [] = {"품목","입고량","사용량","망실량","재고"};
+		String header [] = {"품목","입고량","사용량","망실량","재고","최근 수정일"};
 		String content[][]= null;
 		JTable table = null;
 		
@@ -105,22 +121,34 @@ public class Main_System extends JFrame {
 		String result = (String) productMap.get("result");
 		if(result.equals("성공")) {
 			content = (String[][]) productMap.get("product");
-			table = new JTable(content,header);
+			table = new JTable(content,header) {
+				@Override
+				public boolean isCellEditable(int row, int column) {
+					return false;
+				}
+			};
 			table.setBounds(12, 20, 672, 495);
 			table.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
 					JTable t = (JTable)e.getSource();
-					System.out.println(e.getClickCount());
 					if(e.getClickCount() == 2) {
-						TableModel m = t.getModel();
 						Point pointer = e.getPoint();
 						int index = t.rowAtPoint(pointer);
-						System.out.println("table Index :" + index);
+						
+						//product_detail
+						
+						String [] header_detail = {"월/일","입고량","사용량","망실량","재고"};
+						Map<String,Object> DetailMap = new HashMap<String, Object>();
+						DetailMap = xlsxController.productDetailInfo(index);
+						product_detail detail = new product_detail(DetailMap);
+						
 					}
 				}
 			});
+			table.setFont(new Font("나눔고딕", Font.BOLD,12));
 			panel_1.add(table);
+			
 		}else {
 			JOptionPane.showMessageDialog(null, result);
 		}
@@ -133,16 +161,22 @@ public class Main_System extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = new JFileChooser();
-				chooser.setCurrentDirectory(new File("C:/"));
+				String filePath = filecon.getFilePath();
+				chooser.setCurrentDirectory(new File(filePath.substring(0,filePath.lastIndexOf("\\"))));
 				
 				int returnVal = chooser.showOpenDialog(null);
 				if(returnVal == JFileChooser.APPROVE_OPTION) 
 				{
 					File f = chooser.getSelectedFile();
 					try {
+						System.out.println(f.getCanonicalPath());
+					} catch (IOException e2) {
+						e2.printStackTrace();
+					}
+					try {
 						file.setFilePath(f.getCanonicalPath());
-						panel_1.revalidate();
-						panel_1.repaint();
+						revalidate();
+						repaint();
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
@@ -171,9 +205,9 @@ public class Main_System extends JFrame {
 				if(suc) {
 					XlsxVO vo = new XlsxVO(result);
 					xlsxController.addProduct(vo);
-					
 				}
-					
+				panel_1.revalidate();
+				panel_1.repaint();
 			}
 		});
 		btnAddProduct.setBounds(749, 44, 121, 23);
@@ -192,27 +226,28 @@ public class Main_System extends JFrame {
 		panel_1.add(btnDelete);
 		
 		JLabel label = new JLabel("\uD488\uBA85");
-		label.setBounds(30, 0, 116, 15);
+		label.setFont(new Font("맑은 고딕", Font.BOLD, 12));
+		label.setBounds(30, 0, 43, 15);
 		panel_1.add(label);
 		
 		JLabel label_1 = new JLabel("\uC785\uACE0\uB7C9");
-		label_1.setBounds(125, 0, 57, 15);
+		label_1.setBounds(131, 0, 57, 15);
 		panel_1.add(label_1);
 		
 		JLabel label_2 = new JLabel("\uC0AC\uC6A9\uB7C9");
-		label_2.setBounds(230, 0, 57, 15);
+		label_2.setBounds(244, 0, 57, 15);
 		panel_1.add(label_2);
 		
 		JLabel label_3 = new JLabel("\uB9DD\uC2E4\uB7C9");
-		label_3.setBounds(347, 0, 57, 15);
+		label_3.setBounds(362, 0, 57, 15);
 		panel_1.add(label_3);
 		
 		JLabel label_4 = new JLabel("\uC7AC\uACE0");
-		label_4.setBounds(458, 0, 57, 15);
+		label_4.setBounds(476, 0, 57, 15);
 		panel_1.add(label_4);
 		
 		JLabel label_5 = new JLabel("\uCD5C\uADFC\uC218\uC815\uC77C");
-		label_5.setBounds(557, 0, 89, 15);
+		label_5.setBounds(579, 0, 89, 15);
 		panel_1.add(label_5);
 	}
 }

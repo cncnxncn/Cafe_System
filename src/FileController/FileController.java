@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.Scanner;
 
 public class FileController {
@@ -37,6 +38,7 @@ public class FileController {
 			path = file.getCanonicalPath();
 			file = new File(path);
 			BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+			System.out.println(filePath);
 			writer.write(filePath);
 			writer.flush();
 			writer.close();
