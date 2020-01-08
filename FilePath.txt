@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 C:\Users\사용자\Downloads\1월 관리대장.xlsx
+=======
+C:\Users\사용자\Downloads\통합 문서.xlsx
+>>>>>>> master

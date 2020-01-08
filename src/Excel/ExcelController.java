@@ -56,7 +56,11 @@ public class ExcelController {
 			resultMap.put("result", "가져올 데이터가 없습니다.");
 			return resultMap;
 		}
+<<<<<<< HEAD
 		serviceRead = new ServiceRead();
+=======
+		ServiceRead serviceRead = new ServiceRead();
+>>>>>>> master
 		resultMap.put("workbook", workbook);
 		resultMap = serviceRead.ReadXlsx(resultMap);
 		return resultMap;

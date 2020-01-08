@@ -3,20 +3,29 @@ package Excel;
 import java.io.FileInputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+<<<<<<< HEAD
 import java.util.Calendar;
+=======
+>>>>>>> master
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
+<<<<<<< HEAD
 import org.apache.poi.ss.formula.functions.Replace;
+=======
+>>>>>>> master
 import org.apache.poi.ss.formula.functions.Value;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+<<<<<<< HEAD
 import FileController.FileController;
+=======
+>>>>>>> master
 import FileController.FileVO;
 
 public class ServiceRead {
@@ -25,6 +34,7 @@ public class ServiceRead {
 	private FileInputStream fis;
 	private TimeZone timezon;
 	private Date date;
+<<<<<<< HEAD
 	private String datemonthday = "MM월dd일";
 	private DateFormat df = new SimpleDateFormat(datemonthday);
 	private Calendar cal;
@@ -45,20 +55,43 @@ public class ServiceRead {
 		return rowIndexs;
 	}
 	
+=======
+	private String datemonthday = "MM�� dd";
+	private DateFormat df = new SimpleDateFormat(datemonthday);
+	
+	FileVO vo = new FileVO();
+>>>>>>> master
 	public Map<String, Object> ReadXlsx(Map<String, Object> map){
 		XSSFWorkbook workbook = (XSSFWorkbook) map.get("workbook");
 		XSSFSheet sheet = workbook.getSheetAt(0);
 		
+<<<<<<< HEAD
 		
 		int indexs[] = getRowIndex(sheet);
 		
 		int rowIndex = indexs[0];
 		int StatisticsRowIndex = indexs[1];
+=======
+		int rowIndex = 0;
+		while(sheet.getRow(rowIndex).getCell(0).getStringCellValue().equals("월/일")) {
+			rowIndex++;
+		}
+		rowIndex--;
+		int StatisticsRowIndex = 28 ;
+		while(!sheet.getRow(StatisticsRowIndex).getCell(0).getStringCellValue().equals("총합")) {
+			StatisticsRowIndex ++;
+		}
+		StatisticsRowIndex ++;
+>>>>>>> master
 		
 		XSSFRow productStatisticsRow = sheet.getRow(StatisticsRowIndex);
 		XSSFRow productRow = sheet.getRow(rowIndex);
 		String [] productData = {"품명","입고량","사용량","망실량","재고","최근 수정일"};
+<<<<<<< HEAD
 		int productsCount = productRow.getPhysicalNumberOfCells() / 3;
+=======
+		int productsCount = productRow.getPhysicalNumberOfCells() / 4;
+>>>>>>> master
 		String [][] product = new String[productsCount][productData.length];
 		int cellIndex = 1;
 		for(int index = 0 ; index < productsCount; index++) {
@@ -82,6 +115,10 @@ public class ServiceRead {
 				}
 				cellIndex++;
 			}
+<<<<<<< HEAD
+=======
+			cellIndex++;
+>>>>>>> master
 		}
 		Map<String , Object> productMap = new HashMap<String, Object>();
 		productMap.put("result","성공");
@@ -90,6 +127,7 @@ public class ServiceRead {
 		return productMap;
 	}
 	
+<<<<<<< HEAD
 	public Map<String, Object> ReadProductDetailXlsx(Map<String, Object> map){
 		XSSFWorkbook workbook = (XSSFWorkbook) map.get("workbook");
 		XSSFSheet sheet = workbook.getSheetAt(0);
@@ -151,4 +189,6 @@ public class ServiceRead {
 		return map;
 	}
 	
+=======
+>>>>>>> master
 }

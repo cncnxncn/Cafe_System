@@ -1,8 +1,11 @@
 package GUI;
 
+<<<<<<< HEAD
 import java.awt.Button;
 import java.awt.Color;
 import java.awt.Component;
+=======
+>>>>>>> master
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -10,7 +13,10 @@ import java.awt.Insets;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+<<<<<<< HEAD
 import javax.swing.border.Border;
+=======
+>>>>>>> master
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
@@ -121,12 +127,19 @@ public class Main_System extends JFrame {
 		String result = (String) productMap.get("result");
 		if(result.equals("¼º°ø")) {
 			content = (String[][]) productMap.get("product");
+<<<<<<< HEAD
 			table = new JTable(content,header) {
 				@Override
 				public boolean isCellEditable(int row, int column) {
 					return false;
 				}
 			};
+=======
+			for(int i = 0 ; i < content[0].length; i++) {
+				System.out.println(content[0][i]);
+			}
+			table = new JTable(content,header);
+>>>>>>> master
 			table.setBounds(12, 20, 672, 495);
 			table.addMouseListener(new MouseAdapter() {
 				@Override
@@ -226,7 +239,10 @@ public class Main_System extends JFrame {
 		panel_1.add(btnDelete);
 		
 		JLabel label = new JLabel("\uD488\uBA85");
+<<<<<<< HEAD
 		label.setFont(new Font("¸¼Àº °íµñ", Font.BOLD, 12));
+=======
+>>>>>>> master
 		label.setBounds(30, 0, 43, 15);
 		panel_1.add(label);
 		
