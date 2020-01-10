@@ -3,29 +3,18 @@ package Excel;
 import java.io.FileInputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-<<<<<<< HEAD
 import java.util.Calendar;
-=======
->>>>>>> master
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
-<<<<<<< HEAD
-import org.apache.poi.ss.formula.functions.Replace;
-=======
->>>>>>> master
-import org.apache.poi.ss.formula.functions.Value;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-<<<<<<< HEAD
 import FileController.FileController;
-=======
->>>>>>> master
 import FileController.FileVO;
 
 public class ServiceRead {
@@ -34,14 +23,13 @@ public class ServiceRead {
 	private FileInputStream fis;
 	private TimeZone timezon;
 	private Date date;
-<<<<<<< HEAD
 	private String datemonthday = "MM월dd일";
 	private DateFormat df = new SimpleDateFormat(datemonthday);
 	private Calendar cal;
 	
 	FileVO vo = new FileVO();
 	
-	private int[] getRowIndex(XSSFSheet sheet) {
+	public int[] getRowIndex(XSSFSheet sheet) {
 		int []rowIndexs = new int[2];
 		while(!sheet.getRow(rowIndexs[0]).getCell(0).getStringCellValue().equals("월/일")) {
 			rowIndexs[0] ++;
@@ -55,51 +43,31 @@ public class ServiceRead {
 		return rowIndexs;
 	}
 	
-=======
-	private String datemonthday = "MM�� dd";
-	private DateFormat df = new SimpleDateFormat(datemonthday);
-	
-	FileVO vo = new FileVO();
->>>>>>> master
-	public Map<String, Object> ReadXlsx(Map<String, Object> map){
+	public Map<String,Object> ReadXlsx(Map<String, Object> map){
 		XSSFWorkbook workbook = (XSSFWorkbook) map.get("workbook");
 		XSSFSheet sheet = workbook.getSheetAt(0);
 		
-<<<<<<< HEAD
 		
 		int indexs[] = getRowIndex(sheet);
 		
 		int rowIndex = indexs[0];
 		int StatisticsRowIndex = indexs[1];
-=======
-		int rowIndex = 0;
-		while(sheet.getRow(rowIndex).getCell(0).getStringCellValue().equals("월/일")) {
-			rowIndex++;
-		}
-		rowIndex--;
-		int StatisticsRowIndex = 28 ;
-		while(!sheet.getRow(StatisticsRowIndex).getCell(0).getStringCellValue().equals("총합")) {
-			StatisticsRowIndex ++;
-		}
-		StatisticsRowIndex ++;
->>>>>>> master
 		
 		XSSFRow productStatisticsRow = sheet.getRow(StatisticsRowIndex);
 		XSSFRow productRow = sheet.getRow(rowIndex);
 		String [] productData = {"품명","입고량","사용량","망실량","재고","최근 수정일"};
-<<<<<<< HEAD
 		int productsCount = productRow.getPhysicalNumberOfCells() / 3;
-=======
-		int productsCount = productRow.getPhysicalNumberOfCells() / 4;
->>>>>>> master
+		if(productsCount == 0) {
+			Map<String, Object> resultMap = new HashMap<String, Object>();
+			resultMap.put("result", "가져올 데이터가 없습니다.");
+			return resultMap;
+		}
 		String [][] product = new String[productsCount][productData.length];
 		int cellIndex = 1;
 		for(int index = 0 ; index < productsCount; index++) {
 			product[index][0] = productRow.getCell(cellIndex).getStringCellValue();
-			cellIndex += 2;
-			product[index][5] = productRow.getCell(cellIndex).getStringCellValue();
+			product[index][5] = productRow.getCell(cellIndex + 2).getStringCellValue();
 			//next row
-			cellIndex -= 2;
 			for(int i = 1; i < 5; i++) {
 				XSSFCell statisticsCell = productStatisticsRow.getCell(cellIndex);
 				switch(statisticsCell.getCellType()) {
@@ -115,11 +83,8 @@ public class ServiceRead {
 				}
 				cellIndex++;
 			}
-<<<<<<< HEAD
-=======
-			cellIndex++;
->>>>>>> master
 		}
+		
 		Map<String , Object> productMap = new HashMap<String, Object>();
 		productMap.put("result","성공");
 		productMap.put("product", product);
@@ -127,7 +92,6 @@ public class ServiceRead {
 		return productMap;
 	}
 	
-<<<<<<< HEAD
 	public Map<String, Object> ReadProductDetailXlsx(Map<String, Object> map){
 		XSSFWorkbook workbook = (XSSFWorkbook) map.get("workbook");
 		XSSFSheet sheet = workbook.getSheetAt(0);
@@ -151,17 +115,17 @@ public class ServiceRead {
 		int month = 1;
 		while (fileName.indexOf(String.valueOf(month)) < 0) {
 			month ++;
+			if(month > 12)
+				break;
 		}
-		cal.set(2020, month - 1, 1);
+		
+		cal.set(Calendar.YEAR, month - 1, 1);
 		int MaximumDay = cal.getActualMaximum(cal.DAY_OF_MONTH);
-		System.out.println("MaximumDay : " + MaximumDay);
 		df = new SimpleDateFormat(datemonthday);
 		String [][] content = new String[MaximumDay][5];
 		for(int day = 1 ; day < MaximumDay + 1; day++) {
 			int cellIndex =startCellIndex;
-			cal.set(cal.get(Calendar.YEAR), month -1, day);
-			String month_day = df.format(cal.getTime());
-			month_day.replace("0", "");
+			String month_day = month + "월 " + day +"일";
 			
 			content[day-1][0] = month_day;
 			
@@ -173,7 +137,11 @@ public class ServiceRead {
 			}
 			else 
 			{
-				content[day-1][i] = sheet.getRow(rowIndex).getCell(cellIndex).getNumericCellValue() + "";
+				if(sheet.getRow(rowIndex).getCell(cellIndex).getCellType() == XSSFCell.CELL_TYPE_NUMERIC)
+					content[day-1][i] = sheet.getRow(rowIndex).getCell(cellIndex).getNumericCellValue() + "";
+				else if(sheet.getRow(rowIndex).getCell(cellIndex).getCellType() == XSSFCell.CELL_TYPE_STRING)
+					content[day-1][i] = sheet.getRow(rowIndex).getCell(cellIndex).getStringCellValue();
+					
 			}
 			cellIndex++;
 			}
@@ -189,6 +157,4 @@ public class ServiceRead {
 		return map;
 	}
 	
-=======
->>>>>>> master
 }

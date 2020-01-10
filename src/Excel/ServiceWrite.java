@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -109,7 +110,7 @@ public class ServiceWrite {
 				
 				
 				rowindex++;
-				//xlsx setting
+				//date setting
 					int Maximumday = cal.getActualMaximum(cal.DATE);
 					int month = cal.get(cal.MONTH) + 1;
 					for(int day = 0; day < Maximumday; day ++) {
@@ -120,7 +121,6 @@ public class ServiceWrite {
 						
 						if(setday % 10 == 0) 
 						{
-							System.out.println(setday);
 							celldate[day].setCellStyle(cellDateStyleTen);
 						}
 						else
@@ -207,8 +207,8 @@ public class ServiceWrite {
 			int headerCellIndex = 1;
 			while(sheet.getRow(rowIndex).getCell(cellIndex) != null) {
 				cellIndex+=4;
-				headerCellIndex = cellIndex;
 			}
+			headerCellIndex = cellIndex;
 			XSSFCellStyle AllLastStyle = workbook.createCellStyle();
 			AllLastStyle.setAlignment(XSSFCellStyle.ALIGN_CENTER);
 			AllLastStyle.setBorderRight(XSSFCellStyle.BORDER_THIN);
@@ -304,6 +304,8 @@ public class ServiceWrite {
 							sheet.getRow(index).createCell(i).setCellStyle(TenLastBorderStyle);
 						else
 							sheet.getRow(index).createCell(i).setCellStyle(TenBorderStyle);
+						
+						sheet.getRow(index).getCell(i).setCellValue("");
 					}
 				}
 				else
@@ -326,6 +328,7 @@ public class ServiceWrite {
 	}
 	
 	public Map<String , Object> statisticsSetting(Map<String, Object> map) {
+
 		
 		XSSFWorkbook workbook = (XSSFWorkbook) map.get("workbook");
 		XSSFSheet sheet = (XSSFSheet) map.get("sheet");
@@ -389,5 +392,54 @@ public class ServiceWrite {
 		
 		
 		return resultMap;
+	}
+	
+	public void saveProductDetail(Map<String,Object> map) {
+		List<String[]> contents = (List<String[]>) map.get("content");
+		
+		XSSFWorkbook workbook = (XSSFWorkbook) map.get("workbook");
+		XSSFSheet sheet = workbook.getSheetAt(0);
+		
+		ServiceRead read = new ServiceRead();
+		
+		int startCellIndex = (int) map.get("startCellIndex");
+		int rowIndexs [] = read.getRowIndex(sheet);
+		int startRowIndex = rowIndexs[0];
+		int contentRowIndex= rowIndexs[0] + 3;
+		int startStatisticsRowIndex = rowIndexs[1];
+		
+		date = new Date();
+		timezon = TimeZone.getTimeZone("Asia/Seoul");
+		df = new SimpleDateFormat(datefull);
+		df.setTimeZone(timezon);
+		String fullDate = df.format(date);
+		
+		//lastUpdate Cell
+		sheet.getRow(startRowIndex).getCell(startCellIndex + 1).setCellValue(fullDate);
+		
+		
+		int listIndex = 0;
+		for(int rowIndex = contentRowIndex; rowIndex < startStatisticsRowIndex - 1; rowIndex++) {
+			String[] content = contents.get(listIndex);
+			int contentIndex = 0;
+			for(int cellIndex = startCellIndex; cellIndex < cellIndex + 4; cellIndex++) {
+				XSSFCell cell = null;
+				if(sheet.getRow(rowIndex).getCell(cellIndex) != null)
+				{
+					cell = sheet.getRow(rowIndex).getCell(cellIndex);
+				}
+				else
+				{
+					cell = sheet.getRow(rowIndex).createCell(cellIndex);
+				}
+				cell.setCellValue(content[contentIndex]);
+				
+				contentIndex++;
+			}
+			listIndex++;
+		}
+		
+		
+		
 	}
 }

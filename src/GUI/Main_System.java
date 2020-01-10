@@ -1,89 +1,48 @@
 package GUI;
 
-<<<<<<< HEAD
 import java.awt.Button;
 import java.awt.Color;
 import java.awt.Component;
-=======
->>>>>>> master
 import java.awt.EventQueue;
 import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Insets;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-<<<<<<< HEAD
-import javax.swing.border.Border;
-=======
->>>>>>> master
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.CellEditorListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.plaf.basic.BasicTreeUI.CellEditorHandler;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableModel;
-
-import org.apache.xmlbeans.impl.xb.xsdschema.Public;
 
 import Excel.ExcelController;
 import Excel.XlsxVO;
 import FileController.FileController;
 
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JTabbedPane;
-import java.awt.Panel;
-import java.awt.Point;
+import javax.swing.*;
+import java.awt.*;
 
-import javax.swing.JTable;
-import javax.swing.CellEditor;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
+import javax.swing.*;
 
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.awt.event.ActionEvent;
-import javax.swing.JScrollBar;
-import javax.swing.JLabel;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 public class Main_System extends JFrame {
 	
 	private JPanel contentPane;
 	private JTable table;
+	
+	private final String header [] = {"Ç°¸ñ","ÀÔ°í·®","»ç¿ë·®","¸Á½Ç·®","Àç°í","ÃÖ±Ù ¼öÁ¤ÀÏ"};
+	private String [][] content = null;
+	private Map<String,Object> productMap = null;
+	
 	ExcelController xlsxController = new ExcelController();
 	FileController filecon = new FileController();
-
-	/**
-	 * Launch the application.
-	 */
+	
 	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					Main_System frame = new Main_System();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+		Main_System main = new Main_System();
 	}
-
-	/**
-	 * Create the frame.
-	 */
+	
 	public Main_System() {
 		FileController file = new FileController();
 		
@@ -117,51 +76,17 @@ public class Main_System extends JFrame {
 		
 		
 		
-		String header [] = {"Ç°¸ñ","ÀÔ°í·®","»ç¿ë·®","¸Á½Ç·®","Àç°í","ÃÖ±Ù ¼öÁ¤ÀÏ"};
-		String content[][]= null;
-		JTable table = null;
 		
 		
-		Map<String, Object> productMap = new HashMap<String, Object>();
-		productMap = (Map<String, Object>) xlsxController.getXlsx();
+		
+		JScrollPane scrollpane = null;
+		productMap = xlsxController.getXlsx();
 		String result = (String) productMap.get("result");
 		if(result.equals("¼º°ø")) {
-			content = (String[][]) productMap.get("product");
-<<<<<<< HEAD
-			table = new JTable(content,header) {
-				@Override
-				public boolean isCellEditable(int row, int column) {
-					return false;
-				}
-			};
-=======
-			for(int i = 0 ; i < content[0].length; i++) {
-				System.out.println(content[0][i]);
-			}
-			table = new JTable(content,header);
->>>>>>> master
-			table.setBounds(12, 20, 672, 495);
-			table.addMouseListener(new MouseAdapter() {
-				@Override
-				public void mouseClicked(MouseEvent e) {
-					JTable t = (JTable)e.getSource();
-					if(e.getClickCount() == 2) {
-						Point pointer = e.getPoint();
-						int index = t.rowAtPoint(pointer);
-						
-						//product_detail
-						
-						String [] header_detail = {"¿ù/ÀÏ","ÀÔ°í·®","»ç¿ë·®","¸Á½Ç·®","Àç°í"};
-						Map<String,Object> DetailMap = new HashMap<String, Object>();
-						DetailMap = xlsxController.productDetailInfo(index);
-						product_detail detail = new product_detail(DetailMap);
-						
-					}
-				}
-			});
-			table.setFont(new Font("³ª´®°íµñ", Font.BOLD,12));
+			table = tableSetting();
+			scrollpane = new JScrollPane(table);
+			panel_1.add(scrollpane);
 			panel_1.add(table);
-			
 		}else {
 			JOptionPane.showMessageDialog(null, result);
 		}
@@ -182,18 +107,18 @@ public class Main_System extends JFrame {
 				{
 					File f = chooser.getSelectedFile();
 					try {
-						System.out.println(f.getCanonicalPath());
-					} catch (IOException e2) {
-						e2.printStackTrace();
-					}
-					try {
 						file.setFilePath(f.getCanonicalPath());
-						revalidate();
-						repaint();
+						productMap = xlsxController.getXlsx();
+						panel_1.remove(table);
+						table = tableSetting();
+						panel_1.add(table);
+						table.setBounds(12, 20, 672, 495);
+						tabbedPane.repaint();
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
 				}
+				
 			}
 		});
 		mnSystem.add(mntmOpen);
@@ -218,9 +143,14 @@ public class Main_System extends JFrame {
 				if(suc) {
 					XlsxVO vo = new XlsxVO(result);
 					xlsxController.addProduct(vo);
+					productMap = xlsxController.getXlsx();
+					panel_1.remove(table);
+					table = tableSetting();
+					panel_1.add(table);
+					table.setBounds(12, 20, 672, 495);
+					tabbedPane.repaint();
+					
 				}
-				panel_1.revalidate();
-				panel_1.repaint();
 			}
 		});
 		btnAddProduct.setBounds(749, 44, 121, 23);
@@ -239,31 +169,68 @@ public class Main_System extends JFrame {
 		panel_1.add(btnDelete);
 		
 		JLabel label = new JLabel("\uD488\uBA85");
-<<<<<<< HEAD
 		label.setFont(new Font("¸¼Àº °íµñ", Font.BOLD, 12));
-=======
->>>>>>> master
 		label.setBounds(30, 0, 43, 15);
 		panel_1.add(label);
 		
 		JLabel label_1 = new JLabel("\uC785\uACE0\uB7C9");
+		label_1.setFont(new Font("¸¼Àº °íµñ", Font.BOLD, 12));
 		label_1.setBounds(131, 0, 57, 15);
 		panel_1.add(label_1);
 		
 		JLabel label_2 = new JLabel("\uC0AC\uC6A9\uB7C9");
+		label_2.setFont(new Font("¸¼Àº °íµñ", Font.BOLD, 12));
 		label_2.setBounds(244, 0, 57, 15);
 		panel_1.add(label_2);
 		
 		JLabel label_3 = new JLabel("\uB9DD\uC2E4\uB7C9");
+		label_3.setFont(new Font("¸¼Àº °íµñ", Font.BOLD, 12));
 		label_3.setBounds(362, 0, 57, 15);
 		panel_1.add(label_3);
 		
 		JLabel label_4 = new JLabel("\uC7AC\uACE0");
+		label_4.setFont(new Font("¸¼Àº °íµñ", Font.BOLD, 12));
 		label_4.setBounds(476, 0, 57, 15);
 		panel_1.add(label_4);
 		
 		JLabel label_5 = new JLabel("\uCD5C\uADFC\uC218\uC815\uC77C");
+		label_5.setFont(new Font("¸¼Àº °íµñ", Font.BOLD, 12));
 		label_5.setBounds(579, 0, 89, 15);
 		panel_1.add(label_5);
+		
+		setVisible(true);
+	}
+	
+	private JTable tableSetting() {
+		content = (String[][]) productMap.get("product");
+		table = new JTable(content,header) {
+			@Override
+			public boolean isCellEditable(int row , int cell) {
+				return false;
+			}
+		};
+		table.setBounds(12, 20, 672, 495);
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				JTable t = (JTable)e.getSource();
+				if(e.getClickCount() == 2) {
+					Point pointer = e.getPoint();
+					int index = t.rowAtPoint(pointer);
+					
+					//product_detail
+					
+					String [] header_detail = {"¿ù/ÀÏ","ÀÔ°í·®","»ç¿ë·®","¸Á½Ç·®","Àç°í"};
+					Map<String,Object> DetailMap = new HashMap<String, Object>();
+					DetailMap = xlsxController.productDetailInfo(index);
+					product_detail detail = new product_detail(DetailMap);
+					
+				}
+			}
+		});
+		table.setFont(new Font("³ª´®°íµñ", Font.BOLD,12));
+		table.setRowHeight(35);
+		return table;
 	}
 }
+

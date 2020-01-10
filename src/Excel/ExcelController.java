@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -25,7 +26,7 @@ public class ExcelController {
 	
 	FileVO vo = new FileVO();
 	
-	private ServiceWrite serviceWrite;
+	private ServiceWrite serviceWriter;
 	private ServiceRead serviceRead;
 	
 	public Map<String , Object> getXlsx() {
@@ -56,11 +57,8 @@ public class ExcelController {
 			resultMap.put("result", "가져올 데이터가 없습니다.");
 			return resultMap;
 		}
-<<<<<<< HEAD
 		serviceRead = new ServiceRead();
-=======
 		ServiceRead serviceRead = new ServiceRead();
->>>>>>> master
 		resultMap.put("workbook", workbook);
 		resultMap = serviceRead.ReadXlsx(resultMap);
 		return resultMap;
@@ -68,11 +66,11 @@ public class ExcelController {
 	
 	
 	public void addProduct(XlsxVO vo) {
-		serviceWrite = new ServiceWrite();
+		serviceWriter = new ServiceWrite();
 		
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("product", vo);
-		serviceWrite.addProduct(map);
+		serviceWriter.addProduct(map);
 	}
 	
 	public Map<String,Object> productDetailInfo(int index) {
@@ -89,11 +87,28 @@ public class ExcelController {
 		
 		map.put("cellIndex",startCellIndex);
 		map.put("workbook",workbook);
+		map.put("startCellIndex", startCellIndex);
 
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		serviceRead = new ServiceRead();
 		resultMap = serviceRead.ReadProductDetailXlsx(map);
 		
 		return resultMap;
+	}
+	
+	public Object productDetailWriter(Map<String,Object> map) {
+		
+		FileInputStream fis = vo.getXlsx();
+		XSSFWorkbook workbook = null;
+		
+		try {
+			workbook = new XSSFWorkbook(fis);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		map.put("workbook", workbook);
+		serviceWriter = new ServiceWrite();
+		serviceWriter.saveProductDetail(map);
+		return null;
 	}
 }
