@@ -22,12 +22,15 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
 public class product_detail extends JFrame {
@@ -56,32 +59,113 @@ public class product_detail extends JFrame {
 		
 		String [] Header = {"Date","입고량","사용량","망실량","재고"};
 		String [][] Content = (String[][]) map.get("content");
-		table = new JTable(Content,Header);
-		table.setBounds(12, 120, 357, 497);
-		table.addKeyListener(new KeyAdapter() {
+		table = new JTable(Content,Header) {
 			@Override
-			public void keyPressed(KeyEvent e) {
-				int k= e.getKeyCode();
-				if(k == 37 || k == 38 || k == 39 || k == 40 || k == 9 || k == 10) {
-				int col = table.getSelectedColumn();
-				int row = table.getSelectedRow();
-				if(col != -1 && row != -1)
-				{
-					double lastDayStock = (row != 0) ? (double) table.getValueAt(row - 1, 4) : (double) map.get("lastMonthStock");
-					System.out.println(table.getValueAt(row, col));
-					
-//					double input = ((double) table.getValueAt(row, 1) == 0 ) ? 0 : (double) table.getValueAt(row, 1);
-//					double use = ((double) table.getValueAt(row, 2) == 0) ? 0 : (double) table.getValueAt(row, 2);
-//					double lost = ((double) table.getValueAt(row, 3) == 0) ? 0 : (double) table.getValueAt(row, 3);
-//					
-//					double todayStock = lastDayStock + input - use - lost;
-//					
-//					table.setValueAt(todayStock +"", row, 4);
-				}
+			public boolean isCellEditable(int row, int column) {
+				if(column == 4 || column == 0)
+					return false;
+				else 
+					return true;
+			}
+		};
+		table.setBounds(12, 120, 357, 510);
+		
+		table.addPropertyChangeListener(new PropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				int editCol = table.getEditingColumn();
+				int editRow = table.getEditingRow();
+				if(editCol != -1 && editRow != -1) {
+					JTextField EditCell = (JTextField) table.getEditorComponent();
+					if(EditCell.getText() != null && !EditCell.getText().equals("")) {
+						String EditVal = EditCell.getText();
+						double received = (editCol == 1) ? Double.parseDouble(EditVal) : 
+							(table.getValueAt(editRow, 1) == null || table.getValueAt(editRow, 1).equals("")) ? 0 :
+								Double.parseDouble((String)table.getValueAt(editRow, 1));
+						double usage = (editCol == 2) ? Double.parseDouble(EditVal) : 
+							(table.getValueAt(editRow, 2) == null || table.getValueAt(editRow, 2).equals("")) ? 0 :
+								Double.parseDouble((String)table.getValueAt(editRow, 2));;
+						double Loss = (editCol == 3) ? Double.parseDouble(EditVal) : 
+							(table.getValueAt(editRow, 3) == null || table.getValueAt(editRow, 3).equals("")) ? 0 :
+								Double.parseDouble((String)table.getValueAt(editRow, 3));;
+						
+						
+						int lastDayRowIndex = editRow - 1;
+						while(lastDayRowIndex > -1) {
+							if(table.getValueAt(lastDayRowIndex, 4) == null || table.getValueAt(lastDayRowIndex, 4).equals(""))
+								lastDayRowIndex --;
+							else
+								break;
+						}
+						double lastDayStock = (lastDayRowIndex == -1 || editRow == 0) ? (double) map.get("lastMonthStock") 
+								: Double.parseDouble((String) table.getValueAt(lastDayRowIndex, 4));
+						
+						double todayStock = lastDayStock + received - usage - Loss;
+						double todayOldStock = (table.getValueAt(editRow, 4) == null || table.getValueAt(editRow, 4).equals("")) ? -1 :
+									Double.parseDouble((String) table.getValueAt(editRow, 4));
+						
+						double ChangeVal = 0 ;
+						if(todayOldStock != -1) 
+						{
+							ChangeVal = todayStock - todayOldStock;
+						}else
+						{
+							switch(editCol)
+							{
+							case 1:
+								ChangeVal = received;
+								break;
+							case 2:
+								ChangeVal = -usage;
+								break;
+							case 3:
+								ChangeVal = -Loss;
+								break;
+							}
+						}
+						
+						int statisticsRowIndex = table.getRowCount() - 1;
+						
+						for(int rowIndex = editRow + 1 ; rowIndex < statisticsRowIndex; rowIndex ++) {
+							if(table.getValueAt(rowIndex, 4) == null || table.getValueAt(rowIndex, 4).equals("")) {}
+							else {
+								double Val = Double.parseDouble((String)table.getValueAt(rowIndex, 4)) + ChangeVal;
+								table.setValueAt(String.valueOf(Val), rowIndex, 4);
+							}
+						}
+						
+						table.setValueAt(String.valueOf(todayStock), editRow, 4);
+						
+						double receivedAll = 0;
+						double usageAll = 0;
+						double LossAll = 0;
+						for(int i = 0 ; i < table.getRowCount() - 1; i++) {
+							receivedAll += (table.getValueAt(i, 1) == null || table.getValueAt(i, 1).equals("")) ? 0 : Double.parseDouble((String)table.getValueAt(i, 1));
+							usageAll += (table.getValueAt(i, 2) == null || table.getValueAt(i, 2).equals("")) ? 0 : Double.parseDouble((String)table.getValueAt(i, 2));
+							LossAll += (table.getValueAt(i, 3) == null || table.getValueAt(i, 3).equals("")) ? 0 : Double.parseDouble((String)table.getValueAt(i, 3));
+						}
+						table.setValueAt(String.valueOf(receivedAll), statisticsRowIndex, 1);
+						table.setValueAt(String.valueOf(usageAll), statisticsRowIndex, 2);
+						table.setValueAt(String.valueOf(LossAll), statisticsRowIndex, 3);
+						
+						double LastStock = 0;
+						 
+						for(int i = statisticsRowIndex - 1; i > -1; i --) {
+							if(table.getValueAt(i, 4) == null ||table.getValueAt(i, 4).equals("")) {} 
+							else
+							{
+								LastStock = Double.parseDouble((String) table.getValueAt(i, 4));
+								break;
+							}
+							if(i - 1 ==  -1)
+								LastStock = (double) map.get("lastMonthStock");
+								
+						}
+						table.setValueAt(String.valueOf(LastStock), statisticsRowIndex, 4);
+					}
 				}
 			}
 		});
-
 		
 		contentPane.add(table);
 		
@@ -138,7 +222,7 @@ public class product_detail extends JFrame {
 					String [] content = new String[4];
 					int contentIndex = 0;
 					
-					for(int cellIndex = 1; cellIndex < 4; cellIndex++) {
+					for(int cellIndex = 1; cellIndex < 5; cellIndex++) {
 						if(table.getValueAt(rowIndex, cellIndex) != null)
 							content[contentIndex] = (String) table.getValueAt(rowIndex, cellIndex);
 						else 
@@ -153,7 +237,7 @@ public class product_detail extends JFrame {
 				detailMap.put("content", list);
 				try 
 				{
-					xlsxController.productDetailWriter(map);
+					xlsxController.productDetailWriter(detailMap);
 					JOptionPane.showMessageDialog(null, "저장 완료");
 				}
 				catch(Exception e1)

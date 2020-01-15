@@ -96,7 +96,7 @@ public class ExcelController {
 		return resultMap;
 	}
 	
-	public Object productDetailWriter(Map<String,Object> map) {
+	public void productDetailWriter(Map<String,Object> map) {
 		
 		FileInputStream fis = vo.getXlsx();
 		XSSFWorkbook workbook = null;
@@ -109,6 +109,48 @@ public class ExcelController {
 		map.put("workbook", workbook);
 		serviceWriter = new ServiceWrite();
 		serviceWriter.saveProductDetail(map);
+	}
+
+	public Map<String,Object> getTodayUpdateList(){
+		
+		FileInputStream fis = vo.getXlsx();
+		XSSFWorkbook workbook = null;
+		
+		try {
+			workbook = new XSSFWorkbook(fis);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("workbook", workbook);
+		ServiceRead reader = new ServiceRead();
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap = reader.TodayProductXlsx(map);
+		
+		return resultMap;
+	}
+	
+	public Object setTodayUpdate(Map<String,Object> map) {
+		
+		FileInputStream fis = vo.getXlsx();
+		XSSFWorkbook workbook = null;
+		
+		try {
+			workbook = new XSSFWorkbook(fis);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		Map<String,Object> setMap = new HashMap<String, Object>();
+		String [][] content = (String[][])map.get("content");
+		String [][] statisticsContent = (String[][])map.get("statisticsContent");
+		int rowIndex = (int)map.get("rowIndex");
+		setMap.put("content",content);
+		setMap.put("statisticsContent",statisticsContent);
+		setMap.put("rowIndex",rowIndex);
+		setMap.put("workbook", workbook);
+		serviceWriter = new ServiceWrite();
+		serviceWriter.TodayUpdate(setMap);
+		
 		return null;
 	}
 }

@@ -31,7 +31,8 @@ public class Main_System extends JFrame {
 	
 	private JPanel contentPane;
 	private JTable table;
-	
+	private JScrollPane scrollpane;
+	private String result = "";
 	private final String header [] = {"품목","입고량","사용량","망실량","재고","최근 수정일"};
 	private String [][] content = null;
 	private Map<String,Object> productMap = null;
@@ -72,26 +73,24 @@ public class Main_System extends JFrame {
 		
 		Panel panel_1 = new Panel();
 		tabbedPane.addTab("재고 관리", null, panel_1, null);
+		panel_1.setLayout(null);
 		
 		
 		
 		
 		
 		
-		
-		JScrollPane scrollpane = null;
 		productMap = xlsxController.getXlsx();
-		String result = (String) productMap.get("result");
+		result = (String) productMap.get("result");
 		if(result.equals("성공")) {
 			table = tableSetting();
 			scrollpane = new JScrollPane(table);
+			scrollpane.setBounds(12, 20, 672, 495);
 			panel_1.add(scrollpane);
-			panel_1.add(table);
 		}else {
 			JOptionPane.showMessageDialog(null, result);
 		}
 		
-		panel_1.setLayout(null);
 		
 		
 		JMenuItem mntmOpen = new JMenuItem("Open");
@@ -109,10 +108,14 @@ public class Main_System extends JFrame {
 					try {
 						file.setFilePath(f.getCanonicalPath());
 						productMap = xlsxController.getXlsx();
-						panel_1.remove(table);
+						
+						if(result.equals("성공"))
+							panel_1.remove(scrollpane);
+						
 						table = tableSetting();
-						panel_1.add(table);
-						table.setBounds(12, 20, 672, 495);
+						scrollpane = new JScrollPane(table);
+						scrollpane.setBounds(12, 20, 672, 495);
+						panel_1.add(scrollpane);
 						tabbedPane.repaint();
 					} catch (IOException e1) {
 						e1.printStackTrace();
@@ -129,25 +132,28 @@ public class Main_System extends JFrame {
 		btnAddProduct.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String []result = new String[2];
+				String []results = new String[2];
 //				String []message = {"품명","단가(단위당 가격)","단가(단위)","재고"};
 				String []message = {"품명","재고(숫자만 입력)"};
 				Boolean suc = true;
 				for(int i = 0 ; i < message.length; i++) {
-					result[i] = JOptionPane.showInputDialog(message[i]);
-					if(result[i] == null) {
+					results[i] = JOptionPane.showInputDialog(message[i]);
+					if(results[i] == null) {
 						suc = false;
 						break;
 					}
 				}
 				if(suc) {
-					XlsxVO vo = new XlsxVO(result);
+					XlsxVO vo = new XlsxVO(results);
 					xlsxController.addProduct(vo);
 					productMap = xlsxController.getXlsx();
-					panel_1.remove(table);
+					if(result.equals("성공"))
+						panel_1.remove(scrollpane);
+					
 					table = tableSetting();
-					panel_1.add(table);
-					table.setBounds(12, 20, 672, 495);
+					scrollpane = new JScrollPane(table);
+					scrollpane.setBounds(12, 20, 672, 495);
+					panel_1.add(scrollpane);
 					tabbedPane.repaint();
 					
 				}
@@ -156,16 +162,26 @@ public class Main_System extends JFrame {
 		btnAddProduct.setBounds(749, 44, 121, 23);
 		panel_1.add(btnAddProduct);
 		
-		JButton btnNewButton = new JButton("Update");
+		JButton btnNewButton = new JButton("Refresh");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				productMap = xlsxController.getXlsx();
+				
+				if(result.equals("성공"))
+					panel_1.remove(scrollpane);
+				
+				table = tableSetting();
+				scrollpane = new JScrollPane(table);
+				scrollpane.setBounds(12, 20, 672, 495);
+				panel_1.add(scrollpane);
+				tabbedPane.repaint();
 			}
 		});
 		btnNewButton.setBounds(749, 102, 121, 23);
 		panel_1.add(btnNewButton);
 		
 		JButton btnDelete = new JButton("Delete");
-		btnDelete.setBounds(749, 161, 121, 23);
+		btnDelete.setBounds(749, 212, 121, 23);
 		panel_1.add(btnDelete);
 		
 		JLabel label = new JLabel("\uD488\uBA85");
@@ -198,10 +214,28 @@ public class Main_System extends JFrame {
 		label_5.setBounds(579, 0, 89, 15);
 		panel_1.add(label_5);
 		
+		JButton btnTodayUpdate = new JButton("Today Update");
+		btnTodayUpdate.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Map<String ,Object> map = new HashMap<String, Object>();
+				map = xlsxController.getTodayUpdateList();
+				if((boolean) map.get("result"))
+				{
+					Today_Update update = new Today_Update(map);
+				}
+			}
+		});
+		btnTodayUpdate.setBounds(749, 157, 121, 23);
+		panel_1.add(btnTodayUpdate);
+		
 		setVisible(true);
 	}
 	
+	
+	//JTable method
 	private JTable tableSetting() {
+		result = (String) productMap.get("result");
 		content = (String[][]) productMap.get("product");
 		table = new JTable(content,header) {
 			@Override
@@ -209,7 +243,7 @@ public class Main_System extends JFrame {
 				return false;
 			}
 		};
-		table.setBounds(12, 20, 672, 495);
+//		table.setBounds(12, 20, 672, 495);
 		table.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -224,7 +258,6 @@ public class Main_System extends JFrame {
 					Map<String,Object> DetailMap = new HashMap<String, Object>();
 					DetailMap = xlsxController.productDetailInfo(index);
 					product_detail detail = new product_detail(DetailMap);
-					
 				}
 			}
 		});

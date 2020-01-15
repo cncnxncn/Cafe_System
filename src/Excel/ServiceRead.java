@@ -5,6 +5,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
@@ -23,9 +24,9 @@ public class ServiceRead {
 	private FileInputStream fis;
 	private TimeZone timezon;
 	private Date date;
-	private String datemonthday = "MM월dd일";
+	private String datemonthday = "MM월 dd일";
 	private DateFormat df = new SimpleDateFormat(datemonthday);
-	private Calendar cal;
+	private GregorianCalendar cal;
 	
 	FileVO vo = new FileVO();
 	
@@ -41,6 +42,19 @@ public class ServiceRead {
 		//this row = header , next row = content
 		rowIndexs[1] ++;
 		return rowIndexs;
+	}
+	
+	public int getMonth() {
+		FileController filecon = new FileController();
+		String filePath = filecon.getFilePath();
+		String fileName = filePath.substring(filePath.lastIndexOf("\\"));
+		int month = 1;
+		while (fileName.indexOf(String.valueOf(month)) < 0) {
+			month ++;
+			if(month > 12)
+				break;
+		}
+		return month;
 	}
 	
 	public Map<String,Object> ReadXlsx(Map<String, Object> map){
@@ -70,17 +84,36 @@ public class ServiceRead {
 			//next row
 			for(int i = 1; i < 5; i++) {
 				XSSFCell statisticsCell = productStatisticsRow.getCell(cellIndex);
-				switch(statisticsCell.getCellType()) {
-				case XSSFCell.CELL_TYPE_NUMERIC	: 
-					product[index][i] = statisticsCell.getNumericCellValue() + "";
-					break;
-				case XSSFCell.CELL_TYPE_STRING	:
-					product[index][i] = statisticsCell.getStringCellValue();
-					break;
-				case XSSFCell.CELL_TYPE_ERROR	:
-					product[index][i] = String.valueOf(statisticsCell.getErrorCellValue());
-					break;
+				if(i != 4)
+				{
+					switch(statisticsCell.getCellType()) {
+					case XSSFCell.CELL_TYPE_NUMERIC	: 
+						product[index][i] = statisticsCell.getNumericCellValue() + "";
+						break;
+					case XSSFCell.CELL_TYPE_STRING	:
+						product[index][i] = statisticsCell.getStringCellValue();
+						break;
+					case XSSFCell.CELL_TYPE_ERROR	:
+						product[index][i] = String.valueOf(statisticsCell.getErrorCellValue());
+						break;
+					}
 				}
+				else
+				{
+					int lastStockRowIndex= StatisticsRowIndex - 2;
+					for(int stockRowIndex = lastStockRowIndex; stockRowIndex > - 1; stockRowIndex --) {
+						if(sheet.getRow(stockRowIndex).getCell(cellIndex).getCellType() == XSSFCell.CELL_TYPE_NUMERIC)
+						{
+							product[index][i] = sheet.getRow(stockRowIndex).getCell(cellIndex).getNumericCellValue() + "";
+							break;
+						}
+						if(stockRowIndex == 0)
+						{
+							product[index][i] = sheet.getRow(rowIndex + 2).getCell(cellIndex - 3).getNumericCellValue() + "";
+						}
+					}
+				}
+				
 				cellIndex++;
 			}
 		}
@@ -92,7 +125,7 @@ public class ServiceRead {
 		return productMap;
 	}
 	
-	public Map<String, Object> ReadProductDetailXlsx(Map<String, Object> map){
+	public Map<String,Object> ReadProductDetailXlsx(Map<String, Object> map){
 		XSSFWorkbook workbook = (XSSFWorkbook) map.get("workbook");
 		XSSFSheet sheet = workbook.getSheetAt(0);
 		
@@ -107,22 +140,12 @@ public class ServiceRead {
 		double LastMonthStock = sheet.getRow(startRowIndex + 2).getCell(startCellIndex).getNumericCellValue();
 		int rowIndex = startRowIndex + 3;
 		
-		cal = Calendar.getInstance();
-		date = new Date();
-		FileController filecon = new FileController();
-		String filePath = filecon.getFilePath();
-		String fileName = filePath.substring(filePath.lastIndexOf("\\"));
-		int month = 1;
-		while (fileName.indexOf(String.valueOf(month)) < 0) {
-			month ++;
-			if(month > 12)
-				break;
-		}
+		int month = getMonth();
 		
-		cal.set(Calendar.YEAR, month - 1, 1);
+		date = new Date();
+		GregorianCalendar cal = new GregorianCalendar(date.getYear(),month - 1, 1);
 		int MaximumDay = cal.getActualMaximum(cal.DAY_OF_MONTH);
-		df = new SimpleDateFormat(datemonthday);
-		String [][] content = new String[MaximumDay][5];
+		String [][] content = new String[MaximumDay + 1][5];
 		for(int day = 1 ; day < MaximumDay + 1; day++) {
 			int cellIndex =startCellIndex;
 			String month_day = month + "월 " + day +"일";
@@ -148,6 +171,10 @@ public class ServiceRead {
 			
 			rowIndex++;
 		}
+		content[MaximumDay][0] = "총합";
+		for(int i = 0 ; i < 4; i ++) {
+			content[MaximumDay][i + 1] = sheet.getRow(statisticsRowIndex).getCell(startCellIndex + i).getNumericCellValue() +"";
+		}
 		
 		map.put("content",content);
 		map.put("productName", productName);
@@ -157,4 +184,80 @@ public class ServiceRead {
 		return map;
 	}
 	
+	public Map<String,Object> TodayProductXlsx(Map<String , Object> map){
+		XSSFWorkbook workbook = (XSSFWorkbook) map.get("workbook");
+		XSSFSheet sheet = workbook.getSheetAt(0);
+		
+		int rowIndexs[] = getRowIndex(sheet);
+		int headerRowIndex = rowIndexs[0];
+		int StatisticsRowIndex = rowIndexs[1];
+		
+		date = new Date();
+		GregorianCalendar cal = new GregorianCalendar();
+		String month_day = cal.get(cal.MONTH) +1 +"월 " +cal.get(cal.DAY_OF_MONTH)+"일";
+		
+		int todayRowIndex = 0 ;
+		int maximumRowIndex = sheet.getPhysicalNumberOfRows();
+		boolean row = false;
+		while(todayRowIndex < maximumRowIndex - 1) {
+			if(sheet.getRow(todayRowIndex).getCell(0) == null || sheet.getRow(todayRowIndex).getCell(0).getStringCellValue().equals("총합")) 
+				break;
+			else 
+			{
+				if(sheet.getRow(todayRowIndex).getCell(0).getStringCellValue().equals(month_day))
+				{
+					row = true;
+					break;
+				}
+			}
+			todayRowIndex++;
+		}
+		
+		if(!row)
+		{
+			map.put("result", false);
+			return map;
+		}
+		
+		
+		int productCount = sheet.getRow(headerRowIndex).getPhysicalNumberOfCells() / 3;
+		String content [][] = new String [productCount][5];
+		String contentModel[][] = new String [productCount][5];
+		int cellIndex = 1;
+		for(int index = 0; index < productCount; index ++) {
+			content[index][0] = sheet.getRow(headerRowIndex).getCell(cellIndex).getStringCellValue();
+			
+			int contentIndex = 1;
+			for(int i = cellIndex; i < cellIndex + 4; i++) {
+				if(sheet.getRow(todayRowIndex).getCell(i) != null)
+				{
+					if(sheet.getRow(todayRowIndex).getCell(i).getNumericCellValue() != 0)
+					{
+						content[index][contentIndex] = sheet.getRow(todayRowIndex).getCell(i).getNumericCellValue() + "";
+						contentModel[index][contentIndex] = sheet.getRow(todayRowIndex).getCell(i).getNumericCellValue() + "";
+					}
+					else
+					{
+						content[index][contentIndex] = "";
+						contentModel[index][contentIndex] = "";
+					}
+				}
+				
+				contentIndex ++;
+				}
+			content[index][4] = sheet.getRow(StatisticsRowIndex).getCell(cellIndex + 3).getNumericCellValue() + "";
+			contentModel[index][4] = sheet.getRow(StatisticsRowIndex).getCell(cellIndex + 3).getNumericCellValue() + "";
+			cellIndex += 4;
+			}
+			
+		
+		
+		
+		Map<String, Object> resultmap = new HashMap<String, Object>();
+		resultmap.put("content", content);
+		resultmap.put("result", true);
+		resultmap.put("todayRowIndex", todayRowIndex);
+		resultmap.put("contentModel", contentModel);
+		return resultmap;
+	}
 }

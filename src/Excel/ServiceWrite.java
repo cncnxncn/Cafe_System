@@ -8,6 +8,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,9 +21,11 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import FileController.FileController;
 import FileController.FileVO;
 
 public class ServiceWrite {
@@ -84,7 +88,6 @@ public class ServiceWrite {
 				cell2.setCellValue("Àü¿ù Àç°í");
 				cell2.setCellStyle(style);
 				
-				cal = Calendar.getInstance();
 				
 				//date cell style
 				CellStyle celldatestyle = workbook.createCellStyle();
@@ -111,8 +114,20 @@ public class ServiceWrite {
 				
 				rowindex++;
 				//date setting
-					int Maximumday = cal.getActualMaximum(cal.DATE);
-					int month = cal.get(cal.MONTH) + 1;
+				
+				FileController filecon = new FileController();
+				String filePath = filecon.getFilePath();
+				String fileName = filePath.substring(filePath.lastIndexOf("\\"));
+				int month = 1;
+				while (fileName.indexOf(String.valueOf(month)) < 0) {
+					month ++;
+					if(month > 12)
+						break;
+				}
+				date = new Date();
+				GregorianCalendar cal = new GregorianCalendar();
+					cal.set(date.getYear(), month - 1, 1);
+					int Maximumday = cal.getActualMaximum(cal.DAY_OF_MONTH);
 					for(int day = 0; day < Maximumday; day ++) {
 						int setday = day + 1;
 						String monthday = month + "¿ù " + setday +"ÀÏ";
@@ -343,7 +358,7 @@ public class ServiceWrite {
 			rowIndex++;
 		}
 		
-		String []StatisticsHeader = {"ÃÑ ÀÔ°í·®","ÃÑ »ç¿ë·®","ÃÑ ¸Á½Ç·®","»ç¿ë±Ý¾×"};
+		String []StatisticsHeader = {"ÃÑ ÀÔ°í·®","ÃÑ »ç¿ë·®","ÃÑ ¸Á½Ç·®","Àç°í"};
 		
 		XSSFCellStyle headerStyle = workbook.createCellStyle();
 		XSSFCellStyle contentStyle = workbook.createCellStyle();
@@ -376,7 +391,7 @@ public class ServiceWrite {
 			CellHeader[index].setCellStyle(headerStyle);
 			
 			CellContent[index] = sheet.getRow(rowIndex + 1).createCell(cellIndex);
-			CellContent[index].setCellValue("0");
+			CellContent[index].setCellValue(0);
 			CellContent[index].setCellStyle(contentStyle);
 			
 			if(index + 1 == StatisticsHeader.length) {
@@ -395,6 +410,7 @@ public class ServiceWrite {
 	}
 	
 	public void saveProductDetail(Map<String,Object> map) {
+
 		List<String[]> contents = (List<String[]>) map.get("content");
 		
 		XSSFWorkbook workbook = (XSSFWorkbook) map.get("workbook");
@@ -415,14 +431,16 @@ public class ServiceWrite {
 		String fullDate = df.format(date);
 		
 		//lastUpdate Cell
-		sheet.getRow(startRowIndex).getCell(startCellIndex + 1).setCellValue(fullDate);
+		sheet.getRow(startRowIndex).getCell(startCellIndex + 2).setCellValue(fullDate);
 		
+		XSSFCellStyle dualStyle = workbook.createCellStyle();
+		dualStyle.setAlignment(XSSFCellStyle.ALIGN_CENTER);
 		
 		int listIndex = 0;
 		for(int rowIndex = contentRowIndex; rowIndex < startStatisticsRowIndex - 1; rowIndex++) {
-			String[] content = contents.get(listIndex);
 			int contentIndex = 0;
-			for(int cellIndex = startCellIndex; cellIndex < cellIndex + 4; cellIndex++) {
+			String []content = contents.get(listIndex);
+			for(int cellIndex = startCellIndex; cellIndex < startCellIndex + 4; cellIndex++) {
 				XSSFCell cell = null;
 				if(sheet.getRow(rowIndex).getCell(cellIndex) != null)
 				{
@@ -431,15 +449,96 @@ public class ServiceWrite {
 				else
 				{
 					cell = sheet.getRow(rowIndex).createCell(cellIndex);
+					cell.setCellStyle(dualStyle);
 				}
-				cell.setCellValue(content[contentIndex]);
+				if(!content[contentIndex].equals(""))
+					cell.setCellValue(Double.parseDouble(content[contentIndex]));
 				
 				contentIndex++;
 			}
 			listIndex++;
 		}
 		
+		String []statisticsContent = contents.get(listIndex);
+		int statisticsContentIndex = 0 ;
+		for(int i = startCellIndex; i < startCellIndex + 4; i ++) {
+			sheet.getRow(startStatisticsRowIndex).getCell(i).
+			setCellValue(Double.parseDouble(statisticsContent[statisticsContentIndex]));
+			statisticsContentIndex++;
+		}
+		FileOutputStream fos = vo.setXlsx();
+		try {
+			workbook.write(fos);
+			fos.flush();
+			fos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 		
 		
 	}
+
+	public void TodayUpdate(Map<String,Object> map) {
+		XSSFWorkbook workbook = (XSSFWorkbook) map.get("workbook");
+		XSSFSheet sheet = workbook.getSheetAt(0);
+		
+		ServiceRead read = new ServiceRead();
+		
+		int [] rowindexs = read.getRowIndex(sheet); 
+		int headerRowIndex = rowindexs[0];
+		int statisticsRowIndex = rowindexs[1];
+		int todayRowIndex = (int) map.get("rowIndex");
+		
+		date = new Date();
+		timezon = TimeZone.getTimeZone("Asia/Seoul");
+		df = new SimpleDateFormat(datefull);
+		df.setTimeZone(timezon);
+		String fullDate = df.format(date);
+		
+		String content[][] = (String[][]) map.get("content");
+		String statisticsContent[][] = (String[][]) map.get("statisticsContent");
+		
+		XSSFRow headerRow = sheet.getRow(headerRowIndex);
+		XSSFRow todayRow = sheet.getRow(todayRowIndex);
+		XSSFRow statisticsRow = sheet.getRow(statisticsRowIndex);
+		
+		int cellIndex = 1;
+		for(int index = 0; index < content.length; index++) {
+			headerRow.getCell(cellIndex + 2).setCellValue(fullDate);
+			int contentIndex = 0 ;
+			for(int i = cellIndex; i < cellIndex + 4; i ++) {
+				double Value = Double.parseDouble(content[index][contentIndex]); 
+			if(todayRow.getCell(i) != null)
+			{
+				todayRow.getCell(i).setCellValue(Value);
+			}
+			else
+			{
+				todayRow.createCell(i).setCellValue(Value);
+			}
+			double statisticsValue = Double.parseDouble(statisticsContent[index][contentIndex]);
+			if(contentIndex == 3)
+				statisticsRow.getCell(i).setCellValue(Value);
+			else
+			{	
+				statisticsValue += statisticsRow.getCell(i).getNumericCellValue();
+				statisticsRow.getCell(i).setCellValue(statisticsValue);
+			}
+			contentIndex++;
+			}
+			cellIndex += 4;
+		}
+		
+		FileOutputStream fos = vo.setXlsx();
+		
+		try {
+			workbook.write(fos);
+			fos.flush();
+			fos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 }
